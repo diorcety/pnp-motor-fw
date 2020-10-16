@@ -1,0 +1,38 @@
+{
+  "build": {
+    "core": "stm32",
+    "cpu": "cortex-m0plus",
+    "extra_flags": "-DSTM32L010x8",
+    "mcu": "stm32l010k8",
+    "product_line": "STM32L010x8",
+    "ldscript": "STM32L010K8TX_FLASH.ld",
+    "variant": "Generic_L0xx"
+  },
+  "debug": {
+    "jlink_device": "STM32L010K8",
+    "openocd_target": "stm32l0",
+    "svd_path": "STM32L0x1.svd"
+  },
+  "frameworks": [
+    "arduino",
+    "cmsis",
+    "stm32cube",
+    "libopencm3"
+  ],
+  "name": "STM32L010K8 (8k RAM. 64k Flash)",
+  "upload": {
+    "maximum_ram_size": 8192,
+    "maximum_size": 65536,
+    "protocol": "custom",
+    "protocols": [
+      "blackmagic",
+      "dfu",
+      "jlink",
+      "serial",
+      "stlink", 
+      "custom"
+    ]
+  },
+  "url": "https://www.st.com/en/microcontrollers-microprocessors/stm32l010k8.html",
+  "vendor": "Generic"
+}

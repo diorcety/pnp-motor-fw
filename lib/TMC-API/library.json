@@ -1,0 +1,19 @@
+{
+  "name": "TMC-API",
+  "version": "3.0.6",
+  "description": "Trinamic devices helpers",
+  "keywords": "TMC, TMCL, Trinamic",
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/trinamic/TMC-API"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/trinamic/TMC-API",
+  "frameworks": "*",
+  "platforms": "*",
+  "build": {
+    "includeDir": ".",
+    "srcDir": "tmc"
+  }
+}
