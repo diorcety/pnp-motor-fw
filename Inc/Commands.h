@@ -1,9 +1,8 @@
 /*******************************************************************************
-  Project: stepRocker Mini TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  Commands.h
            Definitions needed for the TMCL interpreter
-
 
    Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
                       Waterloohain 5
@@ -18,11 +17,9 @@
    or FITNESS FOR A PARTICULAR PURPOSE.
 *******************************************************************************/
 
-
 /**
   \file Commands.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief TMCL command definitions
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stealthRocker Mini-TMCL (for stealthRocker)
+  Project: MVPnP Motor Board
 
   Module:  Commands.c
            Processing of TMCL commands
@@ -20,7 +20,6 @@
 /**
   \file Commands.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief Mini TMCL interpreter
 

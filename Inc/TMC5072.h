@@ -1,10 +1,10 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker TMCM-1316)
+  Project: MVPnP Motor Board
 
-  Module:  TMC5072.h
+  Modul:   TMC5072.h
            TMC5072 library
 
-   Copyright (C) 2018 TRINAMIC Motion Control GmbH & Co KG
+   Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
                       Waterloohain 5
                       D - 22769 Hamburg, Germany
                       http://www.trinamic.com/
@@ -20,14 +20,12 @@
 /**
   \file TMC5072.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 1.00
 
   \brief TMC5072 Motor driver functions
 
   This file provides all functions needed for easy
   access to the TMC5072 stepper motor driver IC.
 */
-
 
 #ifndef __TMC5072_H
 #define __TMC5072_H

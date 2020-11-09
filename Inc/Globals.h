@@ -1,7 +1,7 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
-  Modul:   Globals.h
+  Module:  Globals.h
            Global variables and data structures.
 
    Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
@@ -17,11 +17,9 @@
    or FITNESS FOR A PARTICULAR PURPOSE.
 *******************************************************************************/
 
-
 /**
   \file Globals.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief Global variables
 

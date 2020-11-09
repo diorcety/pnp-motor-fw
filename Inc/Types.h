@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  bits.h
            Bit definitions
@@ -20,7 +20,6 @@
 /**
   \file bits.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief Bit definitions.
 

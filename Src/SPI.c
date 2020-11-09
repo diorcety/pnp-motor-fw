@@ -1,8 +1,8 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  SPI.c
-           Access to SPI devices (TMC429, TMC262, EEPROM)
+           Access to SPI devices (TMC5072)
 
    Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
                       Waterloohain 5
@@ -20,12 +20,11 @@
 /**
   \file SPI.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief SPI functions
 
   This file provides all functions needed for SPI
-  access to the other ICs (TMC429, TMC262, EEPROM).
+  access to the other ICs (TMC5072).
 */
 
 #include "Types.h"

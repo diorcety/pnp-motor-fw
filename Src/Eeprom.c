@@ -1,8 +1,8 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  Eeprom.c
-           Access to the onboard EEPROM (AT25128)
+           Access to the onboard EEPROM
 
    Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
                       Waterloohain 5
@@ -20,7 +20,6 @@
 /**
   \file Eeprom.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief EEPROM access functions
 

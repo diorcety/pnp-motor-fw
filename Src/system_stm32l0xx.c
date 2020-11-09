@@ -1,7 +1,6 @@
 /**
   ******************************************************************************
   * @file    system_stm32l0xx.c
-  * @author  MCD Application Team
   * @brief   CMSIS Cortex-M0+ Device Peripheral Access Layer System Source File.
   *
   *   This file provides two functions and one global variable to be called from

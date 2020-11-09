@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stealthRocker Mini-TMCL (for stealthRocker)
+  Project: MVPnP Motor Board
 
   Module:  Globals.c
            Global variables and data structures
@@ -20,7 +20,6 @@
 /**
   \file Globals.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief Global variables
 

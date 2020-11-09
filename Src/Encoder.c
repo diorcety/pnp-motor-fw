@@ -1,8 +1,8 @@
 /*******************************************************************************
-  Project: stealthRocker Mini-TMCL (for stealthRocker)
+  Project: MVPnP Motor Board
 
   Module:  Encoder.c
-           Processing of TMCL commands
+           Definitions for encoder
 
    Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
                       Waterloohain 5
@@ -20,7 +20,6 @@
 /**
   \file Encoder.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 1.00
 
   \brief Encoder functions
 

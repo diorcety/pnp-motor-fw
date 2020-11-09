@@ -1,10 +1,10 @@
 /*******************************************************************************
-  Project: stealthRocker Mini-TMCL (for stealthRocker TMCM-1211)
+  Project: MVPnP Motor Board
 
   Module:  TMC5072.c
            TMC5072 library
 
-   Copyright (C) 2018 TRINAMIC Motion Control GmbH & Co KG
+   Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
                       Waterloohain 5
                       D - 22769 Hamburg, Germany
                       http://www.trinamic.com/
@@ -20,7 +20,6 @@
 /**
   \file TMC5072.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 1.00
 
   \brief TMC5072 Motor driver functions
 

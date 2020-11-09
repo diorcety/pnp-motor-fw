@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  SPI.h
            Definitions of SPI access functions
@@ -20,7 +20,6 @@
 /**
   \file SPI.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief SPI functions
 

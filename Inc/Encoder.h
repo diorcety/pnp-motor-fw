@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  Encoder.c
            Processing of TMCL commands
@@ -20,7 +20,6 @@
 /**
   \file Encoder.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 1.00
 
   \brief Encoder functions
 

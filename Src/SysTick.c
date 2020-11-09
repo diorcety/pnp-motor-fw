@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  SysTick.c
            Use of the system tick timer (1ms timer)
@@ -20,7 +20,6 @@
 /**
   \file SysTick.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief 1ms system tick timer functions
 

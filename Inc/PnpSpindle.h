@@ -1,7 +1,7 @@
 /*******************************************************************************
-  Project: stealthRocker Mini-TMCL
+  Project: MVPnP Motor Board
 
-  Module:  stealthRocker.h
+  Modul:   PnpSpindle.h
            Definitions of globally used data types and macros
 
    Copyright (C) 2016 TRINAMIC Motion Control GmbH & Co KG
@@ -20,7 +20,6 @@
 /**
   \file PnpSpindle.h
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief Basic type and macro definitions
 

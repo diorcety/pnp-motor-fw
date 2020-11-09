@@ -1,5 +1,5 @@
 /*******************************************************************************
-  Project: stepRocker Mini-TMCL (for stepRocker V2.2)
+  Project: MVPnP Motor Board
 
   Module:  SysControl.c
            Motor monitoring (automatic current switching etc.)
@@ -20,7 +20,6 @@
 /**
   \file SysControl.c
   \author Trinamic Motion Control GmbH & Co KG
-  \version 2.20
 
   \brief Motor monitoring
 
