@@ -32,6 +32,6 @@
 #include <stdlib.h>
 #include "Types.h"
 
-UCHAR crc8(UCHAR crc, UCHAR const* data, size_t len);
+UCHAR crc8(UCHAR const* data, size_t len);
 
 #endif //__CRC_H

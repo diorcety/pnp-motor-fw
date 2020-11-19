@@ -61,6 +61,7 @@ static void MX_ADC_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_IWDG_Init(void);
+static void MX_CRC_Init(void);
 /* USER CODE BEGIN PFP */
 static void LoadEeprom();
 /* USER CODE END PFP */
@@ -107,6 +108,7 @@ int main(void)
   MX_USART2_UART_Init();
   MX_SPI1_Init();
   MX_IWDG_Init();
+  MX_CRC_Init();
   /* USER CODE BEGIN 2 */
 
   // Init hardware
@@ -281,6 +283,35 @@ static void MX_ADC_Init(void)
   LL_ADC_Init(ADC1, &ADC_InitStruct);
   /* USER CODE BEGIN ADC_Init 2 */
   /* USER CODE END ADC_Init 2 */
+
+}
+
+/**
+  * @brief CRC Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_CRC_Init(void)
+{
+
+  /* USER CODE BEGIN CRC_Init 0 */
+
+  /* USER CODE END CRC_Init 0 */
+
+  /* Peripheral clock enable */
+  LL_AHB1_GRP1_EnableClock(LL_AHB1_GRP1_PERIPH_CRC);
+
+  /* USER CODE BEGIN CRC_Init 1 */
+
+  /* USER CODE END CRC_Init 1 */
+  LL_CRC_SetInputDataReverseMode(CRC, LL_CRC_INDATA_REVERSE_BYTE);
+  LL_CRC_SetOutputDataReverseMode(CRC, LL_CRC_OUTDATA_REVERSE_BIT);
+  LL_CRC_SetInitialData(CRC, 0xFF);
+  LL_CRC_SetPolynomialCoef(CRC, 77);
+  LL_CRC_SetPolynomialSize(CRC, LL_CRC_POLYLENGTH_8B);
+  /* USER CODE BEGIN CRC_Init 2 */
+
+  /* USER CODE END CRC_Init 2 */
 
 }
 

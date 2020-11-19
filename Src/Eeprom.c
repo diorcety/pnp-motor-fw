@@ -219,7 +219,7 @@ static UCHAR ComputeEepromModule(EepromHeader* header, size_t size)
 {
   header->version_low = SW_VERSION_LOW;
   header->version_high = SW_VERSION_HIGH;
-  UCHAR crc = crc8(EEPROM_MAGIC, (void*)header + 2, size - 2);
+  UCHAR crc = crc8((void*)header + 1, size - 1);
   UCHAR diff = header->crc != crc;
   header->crc = crc;
   return diff;
@@ -227,7 +227,7 @@ static UCHAR ComputeEepromModule(EepromHeader* header, size_t size)
 
 static UCHAR CheckEepromModule(EepromHeader* header, size_t size)
 {
-  return crc8(EEPROM_MAGIC, (void*)header + 2, size - 2) == header->crc;
+  return crc8((void*)header + 1, size - 1) == header->crc;
 }
 
 /*
