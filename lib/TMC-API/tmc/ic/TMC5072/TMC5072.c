@@ -38,12 +38,8 @@ int32_t tmc5072_readInt(TMC5072TypeDef *tmc5072, uint8_t address)
 	if(!TMC_IS_READABLE(tmc5072->registerAccess[address]))
 		return tmc5072->config->shadowRegister[address];
 
-	uint8_t data[5] = { 0, 0, 0, 0, 0 };
+	uint8_t data[5] = { address, 0, 0, 0, 0 };
 
-	data[0] = address;
-	tmc5072_readWriteArray(tmc5072->config->channel, &data[0], 5);
-
-	data[0] = address;
 	tmc5072_readWriteArray(tmc5072->config->channel, &data[0], 5);
 
 	return ((uint32_t)data[1] << 24) | ((uint32_t)data[2] << 16) | (data[3] << 8) | data[4];
@@ -103,6 +99,7 @@ int32_t tmc5072_readInt(TMC5072TypeDef *tmc5072, uint8_t address)
 // and a pointer to a int32_t array (size 128) holding the reset values that shall be used.
 void tmc5072_init(TMC5072TypeDef *tmc5072, uint8_t channel, ConfigurationTypeDef *tmc5072_config, const int32_t *registerResetState)
 {
+#if 0
 	for(uint8_t motor = 0; motor < TMC5072_MOTORS; motor++)
 	{
 		tmc5072->velocity[motor] = 0;
@@ -110,6 +107,7 @@ void tmc5072_init(TMC5072TypeDef *tmc5072, uint8_t channel, ConfigurationTypeDef
 	}
 
 	tmc5072->oldTick     = 0;
+#endif
 	tmc5072->config   = tmc5072_config;
 
 	/*
@@ -237,14 +235,15 @@ static void writeConfiguration(TMC5072TypeDef *tmc5072)
 
 void tmc5072_periodicJob(TMC5072TypeDef *tmc5072, uint32_t tick)
 {
+#if 0
 	uint32_t tickDiff;
-
+#endif
 	if(tmc5072->config->state != CONFIG_READY)
 	{
 		writeConfiguration(tmc5072);
 		return;
 	}
-
+#if 0
 	int32_t x;
 
 	// Calculate velocity v = dx/dt
@@ -258,6 +257,7 @@ void tmc5072_periodicJob(TMC5072TypeDef *tmc5072, uint32_t tick)
 		}
 		tmc5072->oldTick  = tick;
 	}
+#endif
 }
 
 //void tmc5072_periodicJob(uint8_t motor, uint32_t tick, TMC5072TypeDef *tmc5072, ConfigurationTypeDef *TMC5072_config)

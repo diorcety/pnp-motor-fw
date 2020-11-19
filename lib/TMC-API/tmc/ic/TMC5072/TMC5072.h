@@ -23,9 +23,11 @@
 // Usage note: use 1 TypeDef per IC
 typedef struct {
 	ConfigurationTypeDef *config;
+#if 0
 	int32_t oldX[TMC5072_MOTORS];
 	uint32_t velocity[TMC5072_MOTORS];
 	uint32_t oldTick;
+#endif
 	int32_t registerResetState[TMC5072_REGISTER_COUNT];
 	uint8_t registerAccess[TMC5072_REGISTER_COUNT];
 } TMC5072TypeDef;

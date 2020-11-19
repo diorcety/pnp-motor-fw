@@ -7,13 +7,13 @@
 #define MOTOR_ADDR_DRV(m)  (m << 4)
 #define MOTOR_ADDR_PWM(m)  (m << 3)
 
-#define TMC5072_GCONF      0x00
-#define TMC5072_GSTAT      0x01
-#define TMC5072_IFCNT      0x02
-#define TMC5072_SLAVECONF  0x03
-#define TMC5072_INPUT      0x04
-#define TMC5072_OUTPUT     0x04
-#define TMC5072_X_COMPARE  0x05
+#define TMC5072_GCONF(motor)       0x00
+#define TMC5072_GSTAT(motor)       0x01
+#define TMC5072_IFCNT(motor)       0x02
+#define TMC5072_SLAVECONF(motor)   0x03
+#define TMC5072_INPUT(motor)       0x04
+#define TMC5072_OUTPUT(motor)      0x04
+#define TMC5072_X_COMPARE(motor)   0x05
 																 // motor = 0       motor = 1
 #define TMC5072_PWMCONF(motor)     (0x10|MOTOR_ADDR_PWM(motor))  //      0x10            0x18
 #define TMC5072_PWM_STATUS(motor)  (0x11|MOTOR_ADDR_PWM(motor))  //      0x11            0x19

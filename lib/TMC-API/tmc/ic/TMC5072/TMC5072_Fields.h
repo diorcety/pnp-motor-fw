@@ -95,8 +95,8 @@
 #define TMC5072_PWM_SYMMETRIC_SHIFT      19 // min.: 0, max.: 1, default: 0
 #define TMC5072_FREEWHEEL_MASK           0x300000 // PWMCONF_M1 // Allows different standstill modes
 #define TMC5072_FREEWHEEL_SHIFT          20 // min.: 0, max.: 3, default: 0
-//#define TMC5072_PWM_AMPL_MASK          0x0F // PWMCONF_M1 // User defined maximum PWM amplitude change per half wave (1 to 15)
-//#define TMC5072_PWM_AMPL_SHIFT         0 // min.: 0, max.: 255, default: 0
+#define TMC5072_PWM_AMPL_MASK            0xFF // PWMCONF_M1 // User defined maximum PWM amplitude change per half wave (0 to 255)
+#define TMC5072_PWM_AMPL_SHIFT           0 // min.: 0, max.: 255, default: 0
 #define TMC5072_PWM_GRAD_MASK            0xFF00 // PWMCONF_M1 // User defined maximum PWM amplitude when switching back from current chopper mode to voltage PWM mode (switch over velocity defined by TPWMTHRS). Do not set too low values, as the regulation cannot measure the current when the actual PWM value goes below a setting specific value. Settings above 0x40 recommended.
 #define TMC5072_PWM_GRAD_SHIFT           8 // min.: 0, max.: 255, default: 0
 #define TMC5072_PWM_FREQ_MASK            0x030000 // PWMCONF_M1 // PWM frequency selection
@@ -121,8 +121,8 @@
 #define TMC5072_PWM_SYMMETRIC_SHIFT      19 // min.: 0, max.: 1, default: 0
 #define TMC5072_FREEWHEEL_MASK           0x300000 // PWMCONF_M2 // Allows different standstill modes
 #define TMC5072_FREEWHEEL_SHIFT          20 // min.: 0, max.: 3, default: 0
-//#define TMC5072_PWM_AMPL_MASK          0x0F // PWMCONF_M2 // User defined maximum PWM amplitude change per half wave (1 to 15)
-//#define TMC5072_PWM_AMPL_SHIFT         0 // min.: 0, max.: 255, default: 0
+#define TMC5072_PWM_AMPL_MASK            0xFF // PWMCONF_M2 // User defined maximum PWM amplitude change per half wave (0 to 255)
+#define TMC5072_PWM_AMPL_SHIFT           0 // min.: 0, max.: 255, default: 0
 #define TMC5072_PWM_GRAD_MASK            0xFF00 // PWMCONF_M2 // User defined maximum PWM amplitude when switching back from current chopper mode to voltage PWM mode (switch over velocity defined by TPWMTHRS). Do not set too low values, as the regulation cannot measure the current when the actual PWM value goes below a setting specific value. Settings above 0x40 recommended.
 #define TMC5072_PWM_GRAD_SHIFT           8 // min.: 0, max.: 255, default: 0
 #define TMC5072_PWM_FREQ_MASK            0x030000 // PWMCONF_M2 // PWM frequency selection
@@ -145,8 +145,8 @@
 #define TMC5072_VSTART_SHIFT             0 // min.: 0, max.: 262143, default: 0
 #define TMC5072_A1_MASK                  0xFFFF // A1_M1 // First acceleration between VSTART and V1 (unsigned)
 #define TMC5072_A1_SHIFT                 0 // min.: 0, max.: 65535, default: 0
-#define TMC5072_V1__MASK                 0x0FFFFF // V1_M1 // First acceleration / deceleration phase threshold velocity (unsigned) 0: Disables A1 and D1 phase, use AMAX, DMAX only
-#define TMC5072_V1__SHIFT                0 // min.: 0, max.: 1048575, default: 0
+#define TMC5072_V1_MASK                  0x0FFFFF // V1_M1 // First acceleration / deceleration phase threshold velocity (unsigned) 0: Disables A1 and D1 phase, use AMAX, DMAX only
+#define TMC5072_V1_SHIFT                 0 // min.: 0, max.: 1048575, default: 0
 #define TMC5072_AMAX_MASK                0xFFFF // AMAX_M1 // Second acceleration between V1 and VMAX (unsigned) This is the acceleration and deceleration value for velocity mode.
 #define TMC5072_AMAX_SHIFT               0 // min.: 0, max.: 65535, default: 0
 #define TMC5072_VMAX_MASK                0x7FFFFF // VMAX_M1 // Motion ramp target velocity (for positioning ensure VMAX = VSTART) (unsigned) This is the target velocity in velocity mode. It can be changed any time during a motion.
@@ -171,8 +171,8 @@
 #define TMC5072_VSTART_SHIFT             0 // min.: 0, max.: 262143, default: 0
 #define TMC5072_A1_MASK                  0xFFFF // A1_M2 // First acceleration between VSTART and V1 (unsigned)
 #define TMC5072_A1_SHIFT                 0 // min.: 0, max.: 65535, default: 0
-#define TMC5072_V1__MASK                 0x0FFFFF // V1_M2 // First acceleration / deceleration phase threshold velocity (unsigned) 0: Disables A1 and D1 phase, use AMAX, DMAX only
-#define TMC5072_V1__SHIFT                0 // min.: 0, max.: 1048575, default: 0
+#define TMC5072_V1_MASK                  0x0FFFFF // V1_M2 // First acceleration / deceleration phase threshold velocity (unsigned) 0: Disables A1 and D1 phase, use AMAX, DMAX only
+#define TMC5072_V1_SHIFT                 0 // min.: 0, max.: 1048575, default: 0
 #define TMC5072_AMAX_MASK                0xFFFF // AMAX_M2 // Second acceleration between V1 and VMAX (unsigned) This is the acceleration and deceleration value for velocity mode.
 #define TMC5072_AMAX_SHIFT               0 // min.: 0, max.: 65535, default: 0
 #define TMC5072_VMAX_MASK                0x7FFFFF // VMAX_M2 // Motion ramp target velocity (for positioning ensure VMAX = VSTART) (unsigned) This is the target velocity in velocity mode. It can be changed any time during a motion.
