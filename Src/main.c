@@ -134,8 +134,6 @@ int main(void)
 #if !defined(DEBUG)
   LL_IWDG_ReloadCounter(IWDG);
 #endif
-
-  UINT WDGDelay = GetSysTimer();
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -148,12 +146,6 @@ int main(void)
     ProcessCommand();
     SystemControl();
     UpdateEeprom();
-
-    if (abs(GetSysTimer() - WDGDelay) > 1000)
-    {
-      LL_GPIO_TogglePin(OUT1_GPIO_Port, OUT1_Pin);
-      WDGDelay = GetSysTimer();
-    }
 
 #if !defined(DEBUG)
     LL_IWDG_ReloadCounter(IWDG);
