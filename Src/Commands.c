@@ -1259,6 +1259,17 @@ static UCHAR SaveMotorRegister(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register
   return REPLY_OK;
 }
 
+static UCHAR SaveModuleRegister(TModuleEeprom* Eeprom, UCHAR Motor, UCHAR Register, UINT Mask)
+{
+  UCHAR index = TMC5072ReverseModuleRegisterMap[Register];
+  if (index == TMC5072_INVALID_REGISTER)
+  {
+    return REPLY_WRONG_TYPE;
+  }
+  int current = ReadTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register);
+  Eeprom->registers[index] = (Eeprom->registers[index] & ~Mask) | (current & Mask);
+  return REPLY_OK;
+}
 
 /***************************************************************//**
   \fn StoreAxisParameter(void)
@@ -1270,143 +1281,144 @@ static void StoreAxisParameter(void)
 {
   if (VALID_MOTOR())
   {
-    TMotorEeprom* eeprom = GetMotorEeprom(ActualCommand.Motor, NULL);
-    if (eeprom != NULL)
+    TMotorEeprom* motorEeprom = GetMotorEeprom(ActualCommand.Motor, NULL);
+    TModuleEeprom* moduleEeprom = GetModuleEeprom(NULL);
+    if (motorEeprom != NULL && moduleEeprom != NULL)
     {
       ActualReply.Value.Int32 = 0;
 
       switch (ActualCommand.Type)
       {
       case TMCL_AP_ActualPosition:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_XACTUAL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_XACTUAL_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_XACTUAL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_XACTUAL_MASK);
         break;
 
       case TMCL_AP_MaximumPositioningSpeed:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK);
         break;
 
       case TMCL_AP_MaximumAcceleration:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK);
         break;
 
       case TMCL_AP_MaximumCurrent:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IRUN_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IRUN_MASK);
         break;
 
       case TMCL_AP_StandbyCurrent:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLD_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLD_MASK);
         break;
 
       case TMCL_AP_RightLimitSwitchDisable:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_R_ENABLE_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_R_ENABLE_MASK);
         break;
 
       case TMCL_AP_LeftLimitSwitchDisable:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_L_ENABLE_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_L_ENABLE_MASK);
         break;
 
       case TMCL_AP_SwapLimitSwitches:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SWAP_LR_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SWAP_LR_MASK);
         break;
 
       case TMCL_AP_Acceleration:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_A1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_A1_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_A1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_A1_MASK);
         break;
 
       case TMCL_AP_Velocity:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_V1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_V1_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_V1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_V1_MASK);
         break;
 
       case TMCL_AP_MaximumDeceleration:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_DMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DMAX_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_DMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DMAX_MASK);
         break;
 
       case TMCL_AP_Deceleration:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_D1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_D1_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_D1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_D1_MASK);
         break;
 
       case TMCL_AP_VStart:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VSTART(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTART_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VSTART(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTART_MASK);
         break;
 
       case TMCL_AP_VStop:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VSTOP(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTOP_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VSTOP(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTOP_MASK);
         break;
 
       case TMCL_AP_RampWaitTime:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
         break;
 
       case TMCL_AP_SpeedThresholdForCoolStep:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VHIGH(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGH_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VHIGH(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGH_MASK);
         break;
 
       case TMCL_AP_MinimumSpeedForDcStep:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VDCMIN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VDCMIN_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VDCMIN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VDCMIN_MASK);
         break;
 
       case TMCL_AP_RightLimitSwitchPolarity:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_R_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_R_MASK);
         break;
 
       case TMCL_AP_LeftLimitSwitchPolarity:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_L_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_L_MASK);
         break;
 
       case TMCL_AP_SoftStopEnable:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_EN_SOFTSTOP_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_EN_SOFTSTOP_MASK);
         break;
 
       case TMCL_AP_HighSpeedChopperMode:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHCHM_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHCHM_MASK);
         break;
 
       case TMCL_AP_HighSpeedFullstepMode:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHFS_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHFS_MASK);
         break;
 
       case TMCL_AP_PowerDownRamp:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLDDELAY_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLDDELAY_MASK);
         break;
 
       case TMCL_AP_DcStepTime:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_TIME_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_TIME_MASK);
         break;
 
       case TMCL_AP_DcStepStallGuard:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_SG_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_SG_MASK);
         break;
 
       case TMCL_AP_EEPROMMagic:
-        eeprom->config.EEPROMMagic = MotorConfig[ActualCommand.Motor].EEPROMMagic;
+        motorEeprom->config.EEPROMMagic = MotorConfig[ActualCommand.Motor].EEPROMMagic;
         break;
 
       case TMCL_AP_MicrostepResolution:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_MRES_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_MRES_MASK);
         break;
 
         //TMC5072 specific parameters
       case TMCL_AP_ChopperBlankTime:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TBL_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TBL_MASK);
         break;
 
       case TMCL_AP_ConstantTOffMode:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_CHM_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_CHM_MASK);
         break;
 
       case TMCL_AP_DisableFastDecayComparator:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISFDCC_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISFDCC_MASK);
         break;
 
       case TMCL_AP_ChopperHysteresisEnd:
         ActualReply.Value.Int32 = ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)));
         if ((ActualReply.Value.Int32 & TMC5072_CHM_MASK) == 0)
         {
-          ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
+          ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
         }
         else
         {
-          ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TFD_3_MASK | TMC5072_HSTRT_MASK);
+          ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TFD_3_MASK | TMC5072_HSTRT_MASK);
         }
         break;
 
@@ -1414,119 +1426,119 @@ static void StoreAxisParameter(void)
         ActualReply.Value.Int32 = ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)));
         if ((ActualReply.Value.Int32 & TMC5072_CHM_MASK) == 0)
         {
-          ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HSTRT_MASK);
+          ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HSTRT_MASK);
         }
         else
         {
-          ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
+          ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
         }
         break;
 
       case TMCL_AP_ChopperOffTime:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TOFF_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TOFF_MASK);
         break;
 
       case TMCL_AP_SmartEnergyCurrentMinimum:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEIMIN_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEIMIN_MASK);
         break;
 
       case TMCL_AP_SmartEnergyCurrentDownStep:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEDN_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEDN_MASK);
         break;
 
       case TMCL_AP_SmartEnergyHysteresis:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMAX_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMAX_MASK);
         break;
 
       case TMCL_AP_SmartEnergyCurrentUpStep:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEUP_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEUP_MASK);
         break;
 
       case TMCL_AP_SmartEnergyHysteresisStart:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMIN_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMIN_MASK);
         break;
 
       case TMCL_AP_StallGuard2FilterEnable:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SFILT_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SFILT_MASK);
         break;
 
       case TMCL_AP_StallGuard2Threshold:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SGT_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SGT_MASK);
         break;
 
       case TMCL_AP_ShortToGndDisable:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISS2G_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISS2G_MASK);
         break;
 
       case TMCL_AP_VSense:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSENSE_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSENSE_MASK);
         break;
 
       case TMCL_AP_SmartEnergyStallVelocity:
-        eeprom->config.StallVMin = MotorConfig[ActualCommand.Motor].StallVMin;
+        motorEeprom->config.StallVMin = MotorConfig[ActualCommand.Motor].StallVMin;
         break;
 
       case TMCL_AP_SmartEnergyThresholdSpeed:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VCOOLTHRS(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VCOOLTHRS_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VCOOLTHRS(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VCOOLTHRS_MASK);
         break;
 
       case TMCL_AP_RandomTOffMode:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_RNDTF_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_RNDTF_MASK);
         break;
 
       case TMCL_AP_PWMGradient:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_GRAD_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_GRAD_MASK);
         break;
 
       case TMCL_AP_PWMAmplitude:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AMPL_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AMPL_MASK);
         break;
 
       case TMCL_AP_PWMFrequency:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_FREQ_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_FREQ_MASK);
         break;
 
       case TMCL_AP_PWMAutomaticScale:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AUTOSCALE_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AUTOSCALE_MASK);
         break;
 
       case TMCL_AP_EncoderMode:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_ENCMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), 0xFFF);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_ENCMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), 0xFFF);
         break;
 
       case TMCL_AP_MotorFullStepResolution:
-        eeprom->config.MotorFullStepResolution = MotorConfig[ActualCommand.Motor].MotorFullStepResolution;
+        motorEeprom->config.MotorFullStepResolution = MotorConfig[ActualCommand.Motor].MotorFullStepResolution;
         break;
 
       case TMCL_AP_FreewheelingMode:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_FREEWHEEL_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_FREEWHEEL_MASK);
         break;
 
       case TMCL_AP_EncoderResolution:
-        eeprom->config.EncoderResolution = MotorConfig[ActualCommand.Motor].EncoderResolution;
+        motorEeprom->config.EncoderResolution = MotorConfig[ActualCommand.Motor].EncoderResolution;
         break;
 
       case TMCL_AP_MaximumEncoderDeviation:
-        eeprom->config.MaxDeviation = MotorConfig[ActualCommand.Motor].MaxDeviation;
+        motorEeprom->config.MaxDeviation = MotorConfig[ActualCommand.Motor].MaxDeviation;
         break;
 
       case TMCL_AP_PowerDownDelay:
-        ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
         break;
 
       case TMCL_AP_ReverseShaft:
         if (MOTOR_TO_IC_MOTOR(ActualCommand.Motor) == 0)
         {
-          ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT1_MASK);
+          ActualReply.Status = SaveModuleRegister(moduleEeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT1_MASK);
         }
         else
         {
-          ActualReply.Status = SaveMotorRegister(eeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT2_MASK);
+          ActualReply.Status = SaveModuleRegister(moduleEeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT2_MASK);
         }
         break;
 
       case TMCL_AP_UnitMode:
-        eeprom->config.UnitMode = MotorConfig[ActualCommand.Motor].UnitMode;
+        motorEeprom->config.UnitMode = MotorConfig[ActualCommand.Motor].UnitMode;
         break;
 
       default:
@@ -1551,6 +1563,17 @@ static UCHAR LoadMotorRegister(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register
   return REPLY_OK;
 }
 
+static UCHAR LoadModuleRegister(TModuleEeprom* Eeprom, UCHAR Motor, UCHAR Register, UINT Mask)
+{
+  UCHAR index = TMC5072ReverseModuleRegisterMap[Register];
+  if (index == TMC5072_INVALID_REGISTER)
+  {
+    return REPLY_WRONG_TYPE;
+  }
+  WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register, (ReadTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register) & ~Mask) | (Eeprom->registers[index] & Mask));
+  return REPLY_OK;
+}
+
 
 /***************************************************************//**
   \fn RestoreAxisParameter(void)
@@ -1562,143 +1585,144 @@ static void RestoreAxisParameter(void)
 {
   if (VALID_MOTOR())
   {
-    TMotorEeprom* eeprom = GetMotorEeprom(ActualCommand.Motor, NULL);
-    if (eeprom != NULL)
+    TMotorEeprom* motorEeprom = GetMotorEeprom(ActualCommand.Motor, NULL);
+    TModuleEeprom* moduleEeprom = GetModuleEeprom(NULL);
+    if (motorEeprom != NULL && moduleEeprom != NULL)
     {
       ActualReply.Value.Int32 = 0;
 
       switch (ActualCommand.Type)
       {
       case TMCL_AP_ActualPosition:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_XACTUAL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_XACTUAL_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_XACTUAL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_XACTUAL_MASK);
         break;
 
       case TMCL_AP_MaximumPositioningSpeed:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK);
         break;
 
       case TMCL_AP_MaximumAcceleration:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK);
         break;
 
       case TMCL_AP_MaximumCurrent:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IRUN_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IRUN_MASK);
         break;
 
       case TMCL_AP_StandbyCurrent:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLD_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLD_MASK);
         break;
 
       case TMCL_AP_RightLimitSwitchDisable:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_R_ENABLE_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_R_ENABLE_MASK);
         break;
 
       case TMCL_AP_LeftLimitSwitchDisable:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_L_ENABLE_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_STOP_L_ENABLE_MASK);
         break;
 
       case TMCL_AP_SwapLimitSwitches:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SWAP_LR_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SWAP_LR_MASK);
         break;
 
       case TMCL_AP_Acceleration:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_A1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_A1_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_A1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_A1_MASK);
         break;
 
       case TMCL_AP_Velocity:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_V1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_V1_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_V1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_V1_MASK);
         break;
 
       case TMCL_AP_MaximumDeceleration:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_DMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DMAX_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_DMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DMAX_MASK);
         break;
 
       case TMCL_AP_Deceleration:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_D1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_D1_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_D1(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_D1_MASK);
         break;
 
       case TMCL_AP_VStart:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VSTART(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTART_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VSTART(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTART_MASK);
         break;
 
       case TMCL_AP_VStop:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VSTOP(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTOP_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VSTOP(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSTOP_MASK);
         break;
 
       case TMCL_AP_RampWaitTime:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
         break;
 
       case TMCL_AP_SpeedThresholdForCoolStep:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VHIGH(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGH_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VHIGH(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGH_MASK);
         break;
 
       case TMCL_AP_MinimumSpeedForDcStep:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VDCMIN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VDCMIN_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VDCMIN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VDCMIN_MASK);
         break;
 
       case TMCL_AP_RightLimitSwitchPolarity:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_R_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_R_MASK);
         break;
 
       case TMCL_AP_LeftLimitSwitchPolarity:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_L_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_POL_STOP_L_MASK);
         break;
 
       case TMCL_AP_SoftStopEnable:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_EN_SOFTSTOP_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_SWMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_EN_SOFTSTOP_MASK);
         break;
 
       case TMCL_AP_HighSpeedChopperMode:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHCHM_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHCHM_MASK);
         break;
 
       case TMCL_AP_HighSpeedFullstepMode:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHFS_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VHIGHFS_MASK);
         break;
 
       case TMCL_AP_PowerDownRamp:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLDDELAY_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_IHOLD_IRUN(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_IHOLDDELAY_MASK);
         break;
 
       case TMCL_AP_DcStepTime:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_TIME_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_TIME_MASK);
         break;
 
       case TMCL_AP_DcStepStallGuard:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_SG_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_DCCTRL(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DC_SG_MASK);
         break;
 
       case TMCL_AP_EEPROMMagic:
-        MotorConfig[ActualCommand.Motor].EEPROMMagic = eeprom->config.EEPROMMagic;
+        MotorConfig[ActualCommand.Motor].EEPROMMagic = motorEeprom->config.EEPROMMagic;
         break;
 
       case TMCL_AP_MicrostepResolution:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_MRES_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_MRES_MASK);
         break;
 
         //TMC5072 specific parameters
       case TMCL_AP_ChopperBlankTime:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TBL_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TBL_MASK);
         break;
 
       case TMCL_AP_ConstantTOffMode:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_CHM_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_CHM_MASK);
         break;
 
       case TMCL_AP_DisableFastDecayComparator:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISFDCC_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISFDCC_MASK);
         break;
 
       case TMCL_AP_ChopperHysteresisEnd:
         ActualReply.Value.Int32 = ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)));
         if ((ActualReply.Value.Int32 & TMC5072_CHM_MASK) == 0)
         {
-          ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
+          ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
         }
         else
         {
-          ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TFD_3_MASK | TMC5072_HSTRT_MASK);
+          ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TFD_3_MASK | TMC5072_HSTRT_MASK);
         }
         break;
 
@@ -1706,119 +1730,119 @@ static void RestoreAxisParameter(void)
         ActualReply.Value.Int32 = ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)));
         if ((ActualReply.Value.Int32 & TMC5072_CHM_MASK) == 0)
         {
-          ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HSTRT_MASK);
+          ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HSTRT_MASK);
         }
         else
         {
-          ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
+          ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_HEND_MASK);
         }
         break;
 
       case TMCL_AP_ChopperOffTime:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TOFF_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TOFF_MASK);
         break;
 
       case TMCL_AP_SmartEnergyCurrentMinimum:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEIMIN_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEIMIN_MASK);
         break;
 
       case TMCL_AP_SmartEnergyCurrentDownStep:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEDN_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEDN_MASK);
         break;
 
       case TMCL_AP_SmartEnergyHysteresis:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMAX_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMAX_MASK);
         break;
 
       case TMCL_AP_SmartEnergyCurrentUpStep:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEUP_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEUP_MASK);
         break;
 
       case TMCL_AP_SmartEnergyHysteresisStart:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMIN_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SEMIN_MASK);
         break;
 
       case TMCL_AP_StallGuard2FilterEnable:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SFILT_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SFILT_MASK);
         break;
 
       case TMCL_AP_StallGuard2Threshold:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SGT_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_COOLCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SGT_MASK);
         break;
 
       case TMCL_AP_ShortToGndDisable:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISS2G_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_DISS2G_MASK);
         break;
 
       case TMCL_AP_VSense:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSENSE_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VSENSE_MASK);
         break;
 
       case TMCL_AP_SmartEnergyStallVelocity:
-        MotorConfig[ActualCommand.Motor].StallVMin = eeprom->config.StallVMin;
+        MotorConfig[ActualCommand.Motor].StallVMin = motorEeprom->config.StallVMin;
         break;
 
       case TMCL_AP_SmartEnergyThresholdSpeed:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_VCOOLTHRS(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VCOOLTHRS_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VCOOLTHRS(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VCOOLTHRS_MASK);
         break;
 
       case TMCL_AP_RandomTOffMode:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_RNDTF_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_RNDTF_MASK);
         break;
 
       case TMCL_AP_PWMGradient:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_GRAD_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_GRAD_MASK);
         break;
 
       case TMCL_AP_PWMAmplitude:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AMPL_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AMPL_MASK);
         break;
 
       case TMCL_AP_PWMFrequency:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_FREQ_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_FREQ_MASK);
         break;
 
       case TMCL_AP_PWMAutomaticScale:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AUTOSCALE_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_PWM_AUTOSCALE_MASK);
         break;
 
       case TMCL_AP_EncoderMode:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_ENCMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), 0xFFF);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_ENCMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), 0xFFF);
         break;
 
       case TMCL_AP_MotorFullStepResolution:
-        MotorConfig[ActualCommand.Motor].MotorFullStepResolution = eeprom->config.MotorFullStepResolution;
+        MotorConfig[ActualCommand.Motor].MotorFullStepResolution = motorEeprom->config.MotorFullStepResolution;
         break;
 
       case TMCL_AP_FreewheelingMode:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_FREEWHEEL_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_PWMCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_FREEWHEEL_MASK);
         break;
 
       case TMCL_AP_EncoderResolution:
-        MotorConfig[ActualCommand.Motor].EncoderResolution = eeprom->config.EncoderResolution;
+        MotorConfig[ActualCommand.Motor].EncoderResolution = motorEeprom->config.EncoderResolution;
         break;
 
       case TMCL_AP_MaximumEncoderDeviation:
-        MotorConfig[ActualCommand.Motor].MaxDeviation = eeprom->config.MaxDeviation;
+        MotorConfig[ActualCommand.Motor].MaxDeviation = motorEeprom->config.MaxDeviation;
         break;
 
       case TMCL_AP_PowerDownDelay:
-        ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_TZEROWAIT(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_TZEROWAIT_MASK);
         break;
 
       case TMCL_AP_ReverseShaft:
         if (MOTOR_TO_IC_MOTOR(ActualCommand.Motor) == 0)
         {
-          ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT1_MASK);
+          ActualReply.Status = LoadModuleRegister(moduleEeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT1_MASK);
         }
         else
         {
-          ActualReply.Status = LoadMotorRegister(eeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT2_MASK);
+          ActualReply.Status = LoadModuleRegister(moduleEeprom, ActualCommand.Motor, TMC5072_GCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_SHAFT2_MASK);
         }
         break;
 
       case TMCL_AP_UnitMode:
-        MotorConfig[ActualCommand.Motor].UnitMode = eeprom->config.UnitMode;
+        MotorConfig[ActualCommand.Motor].UnitMode = motorEeprom->config.UnitMode;
         break;
 
       default:
