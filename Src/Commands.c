@@ -546,9 +546,9 @@ static void SetAxisParameter(void)
       {
         READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT, TMC5072_MODE_VELNEG);
       }
-      VMaxModified[ActualCommand.Motor] = TRUE;
       ActualCommand.Value.Int32 = VelocityToInternal[ActualCommand.Motor](abs(ActualCommand.Value.Int32));
       READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_VMAX, TMC5072_VMAX_MASK, TMC5072_VMAX_SHIFT, ActualCommand.Value.Int32);
+      VMaxModified[ActualCommand.Motor] = TRUE;
       break;
 
     case TMCL_AP_MaximumPositioningSpeed:
@@ -556,13 +556,14 @@ static void SetAxisParameter(void)
       if (READ_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT) == TMC5072_MODE_POSITION)
       {
         READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_VMAX, TMC5072_VMAX_MASK, TMC5072_VMAX_SHIFT, VMax[ActualCommand.Motor]);
+        VMaxModified[ActualCommand.Motor] = FALSE;
       }
       break;
 
     case TMCL_AP_MaximumAcceleration:
-      AMaxModified[ActualCommand.Motor] = FALSE;
       AMax[ActualCommand.Motor] = AccelerationToInternal[ActualCommand.Motor](ActualCommand.Value.Int32);
       READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_AMAX, TMC5072_AMAX_MASK, TMC5072_AMAX_SHIFT, AMax[ActualCommand.Motor]);
+      AMaxModified[ActualCommand.Motor] = FALSE;
       break;
 
     case TMCL_AP_MaximumCurrent:
@@ -1259,6 +1260,17 @@ static UCHAR SaveMotorRegister(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register
   return REPLY_OK;
 }
 
+static UCHAR SaveMotorValue(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register, UINT Mask, int current)
+{
+  UCHAR index = TMC5072ReverseMotorRegisterMap[MOTOR_TO_IC_MOTOR(ActualCommand.Motor)][Register];
+  if (index == TMC5072_INVALID_REGISTER)
+  {
+    return REPLY_WRONG_TYPE;
+  }
+  Eeprom->registers[index] = (Eeprom->registers[index] & ~Mask) | (current & Mask);
+  return REPLY_OK;
+}
+
 static UCHAR SaveModuleRegister(TModuleEeprom* Eeprom, UCHAR Motor, UCHAR Register, UINT Mask)
 {
   UCHAR index = TMC5072ReverseModuleRegisterMap[Register];
@@ -1294,11 +1306,11 @@ static void StoreAxisParameter(void)
         break;
 
       case TMCL_AP_MaximumPositioningSpeed:
-        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK);
+        ActualReply.Status = SaveMotorValue(motorEeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK, VMax[ActualCommand.Motor]);
         break;
 
       case TMCL_AP_MaximumAcceleration:
-        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK);
+        ActualReply.Status = SaveMotorValue(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK, AMax[ActualCommand.Motor]);
         break;
 
       case TMCL_AP_MaximumCurrent:
@@ -1551,7 +1563,6 @@ static void StoreAxisParameter(void)
   else ActualReply.Status = REPLY_INVALID_VALUE;
 }
 
-
 static UCHAR LoadMotorRegister(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register, UINT Mask)
 {
   UCHAR index = TMC5072ReverseMotorRegisterMap[MOTOR_TO_IC_MOTOR(ActualCommand.Motor)][Register];
@@ -1560,6 +1571,17 @@ static UCHAR LoadMotorRegister(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register
     return REPLY_WRONG_TYPE;
   }
   WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register, (ReadTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register) & ~Mask) | (Eeprom->registers[index] & Mask));
+  return REPLY_OK;
+}
+
+static UCHAR LoadMotorValue(TMotorEeprom* Eeprom, UCHAR Motor, UCHAR Register, UINT Mask, int *current)
+{
+  UCHAR index = TMC5072ReverseMotorRegisterMap[MOTOR_TO_IC_MOTOR(ActualCommand.Motor)][Register];
+  if (index == TMC5072_INVALID_REGISTER)
+  {
+    return REPLY_WRONG_TYPE;
+  }
+  *current = ReadTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register) & ~Mask;
   return REPLY_OK;
 }
 
@@ -1573,7 +1595,6 @@ static UCHAR LoadModuleRegister(TModuleEeprom* Eeprom, UCHAR Motor, UCHAR Regist
   WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register, (ReadTMC5072Int(MOTOR_TO_IC_SPI(Motor), Register) & ~Mask) | (Eeprom->registers[index] & Mask));
   return REPLY_OK;
 }
-
 
 /***************************************************************//**
   \fn RestoreAxisParameter(void)
@@ -1598,11 +1619,24 @@ static void RestoreAxisParameter(void)
         break;
 
       case TMCL_AP_MaximumPositioningSpeed:
-        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK);
+        ActualReply.Status = LoadMotorValue(motorEeprom, ActualCommand.Motor, TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_VMAX_MASK, &VMax[ActualCommand.Motor]);
+        if (ActualReply.Status == REPLY_OK)
+        {
+          if (READ_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT) == TMC5072_MODE_POSITION)
+          {
+            VMaxModified[ActualCommand.Motor] = FALSE;
+            READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_VMAX, TMC5072_VMAX_MASK, TMC5072_VMAX_SHIFT, VMax[ActualCommand.Motor]);
+          }
+        }
         break;
 
       case TMCL_AP_MaximumAcceleration:
-        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK);
+        ActualReply.Status = LoadMotorValue(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK, &AMax[ActualCommand.Motor]);
+        if (ActualReply.Status == REPLY_OK)
+        {
+          AMaxModified[ActualCommand.Motor] = FALSE;
+          READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_AMAX, TMC5072_AMAX_MASK, TMC5072_AMAX_SHIFT, AMax[ActualCommand.Motor]);
+        }
         break;
 
       case TMCL_AP_MaximumCurrent:
