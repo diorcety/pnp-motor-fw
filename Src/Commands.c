@@ -688,6 +688,10 @@ static void SetAxisParameter(void)
       RelativePositioningOptionCode[ActualCommand.Motor] = ActualCommand.Value.Int32;
       break;
 
+    case TMCL_AP_RampMode:
+      READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT, ActualCommand.Value.Int32);
+      break;
+
     case TMCL_AP_MicrostepResolution:
       ActualCommand.Value.Int32 = (8 - ActualCommand.Value.Int32);
       READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_CHOPCONF, TMC5072_MRES_MASK, TMC5072_MRES_SHIFT, ActualCommand.Value.Int32);
@@ -1060,6 +1064,10 @@ static void GetAxisParameter(void)
       ActualReply.Value.Int32 = RelativePositioningOptionCode[ActualCommand.Motor];
       break;
 
+    case TMCL_AP_RampMode:
+      ActualReply.Value.Int32 = READ_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT);
+      break;
+
     case TMCL_AP_MicrostepResolution:
       ActualReply.Value.Int32 = READ_PARAMETER(ActualCommand.Motor, TMC5072_CHOPCONF, TMC5072_MRES_MASK, TMC5072_MRES_SHIFT);
       ActualReply.Value.Int32 = 8 - ActualReply.Value.Int32;
@@ -1405,6 +1413,10 @@ static void StoreAxisParameter(void)
         motorEeprom->config.EEPROMMagic = MotorConfig[ActualCommand.Motor].EEPROMMagic;
         break;
 
+    case TMCL_AP_RampMode:
+        ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_RAMPMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_RAMPMODE_MASK);
+      break;
+
       case TMCL_AP_MicrostepResolution:
         ActualReply.Status = SaveMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_CHOPCONF(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_MRES_MASK);
         break;
@@ -1729,6 +1741,10 @@ static void RestoreAxisParameter(void)
 
       case TMCL_AP_EEPROMMagic:
         MotorConfig[ActualCommand.Motor].EEPROMMagic = motorEeprom->config.EEPROMMagic;
+        break;
+
+      case TMCL_AP_RampMode:
+        ActualReply.Status = LoadMotorRegister(motorEeprom, ActualCommand.Motor, TMC5072_RAMPMODE(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_RAMPMODE_MASK);
         break;
 
       case TMCL_AP_MicrostepResolution:

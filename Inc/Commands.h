@@ -88,6 +88,7 @@
 #define TMCL_AP_DcStepStallGuard                 33
 #define TMCL_AP_EEPROMMagic                      64
 #define TMCL_AP_RelativePositioningOption        127
+#define TMCL_AP_RampMode                         138
 #define TMCL_AP_MicrostepResolution              140
 #define TMCL_AP_ChopperBlankTime                 162
 #define TMCL_AP_ConstantTOffMode                 163
