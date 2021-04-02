@@ -38,17 +38,23 @@
 
 typedef struct
 {
-  UCHAR* data;
-  USHORT address;
+  USHORT offset;
   USHORT size;
-  UCHAR device;
 } EepromWriteParams;
+
+typedef struct 
+{
+  UCHAR* eeprom;
+  UCHAR* data;
+  USHORT offset;
+  USHORT count;
+} EepromWriteInternal;
 
 typedef struct
 {
   EepromWriteParams params;
+  EepromWriteInternal internal;
   USHORT offset;
-  USHORT count;
 } EepromWriteState;
 
 typedef struct pt ProtoThread;
@@ -127,39 +133,36 @@ static void pt_EEPROM_WriteBytes(ProtoThread* pt, EepromWriteState* state)
 
   pt_begin(pt);
 
-  if (state->params.address + state->params.size >= DATA_EEPROM_SIZE)
-  {
-    pt_exit(pt, HAL_ERROR);
-  }
-  state->offset = 0;
-
   if (HAL_OK != HAL_FLASH_Unlock())
   {
     pt_exit(pt, HAL_ERROR);
   }
 
-  while (state->params.size > 0)
+  while (state->internal.offset < state->params.size)
   {
     /* Disable all IRQs */
     __disable_irq();
 
+    UCHAR* eeprom_chunk = &(state->internal.eeprom[state->internal.offset]);
+    UCHAR* data_chunk = &(state->internal.data[state->internal.offset]);
+
     // 4 bytes
-    if (state->params.size >= 4 && (state->params.address & (4 - 1)) == 0)
+    if (state->params.size >= 4 && (((uint32_t)eeprom_chunk) & (4 - 1)) == 0)
     {
-      state->count = 4;
-      *((__IO uint32_t*)(DATA_EEPROM_BASE + state->params.address)) = *((uint32_t*)&(state->params.data[state->offset]));
+      state->internal.count = 4;
+      *((__IO uint32_t*)eeprom_chunk) = *((uint32_t*)data_chunk);
     }
     // 2 bytes
-    else if (state->params.size >= 2 && (state->params.address & (2 - 1)) == 0)
+    else if (state->params.size >= 2 && (((uint32_t)eeprom_chunk) & (2 - 1)) == 0)
     {
-      state->count = 2;
-      *((__IO uint16_t*)(DATA_EEPROM_BASE + state->params.address)) = *((uint16_t*)&(state->params.data[state->offset]));
+      state->internal.count = 2;
+      *((__IO uint16_t*)eeprom_chunk) = *((uint16_t*)data_chunk);
     }
     // 1 byte
     else
     {
-      state->count = 1;
-      *((__IO uint8_t*)(DATA_EEPROM_BASE + state->params.address)) = *((uint8_t*)&(state->params.data[state->offset]));
+      state->internal.count = 1;
+      *((__IO uint8_t*)eeprom_chunk) = *((uint8_t*)data_chunk);
     }
 
     /* Enable IRQs */
@@ -199,9 +202,7 @@ static void pt_EEPROM_WriteBytes(ProtoThread* pt, EepromWriteState* state)
     }
 
     /* Update pointers */
-    state->offset += state->count;
-    state->params.address += state->count;
-    state->params.size -= state->count;
+    state->internal.offset += state->internal.count;
   }
 
   HAL_FLASH_Lock();
@@ -257,7 +258,9 @@ static void pt_WriteEeprom(UCHAR device)
   EepromState* state = &eeprom_states[device];
   if (pt_status(&state->pt) == PT_STATUS_IDLE)
   {
-    state->state.params.address += (sizeof(EepromMotorContent) * device);
+    state->state.internal.eeprom = (UCHAR *)(DATA_EEPROM_BASE + (sizeof(EepromMotorContent) * device) + state->state.params.offset);
+    state->state.internal.data = GET_EEPROM_CACHE(device) + state->state.params.offset;
+    state->state.internal.offset = 0;
   }
   pt_EEPROM_WriteBytes(&state->pt, &state->state);
 }
@@ -276,7 +279,6 @@ void InitEeprom()
     state->tick = 0;
 
     pt_reset(&state->pt);
-    state->state.params.device = i;
   }
 }
 
@@ -300,7 +302,7 @@ void UpdateEeprom()
     {
       if (pt_exitcode(&state->pt) == HAL_OK)  //Update the copy buffer if the EEPROM is correctly updated
       {
-        memcpy(&copy[state->state.params.address], &cache[state->state.params.address], state->state.params.size);
+        memcpy(&copy[state->state.params.offset], &cache[state->state.params.offset], state->state.params.size);
       }
       pt_reset(&state->pt);
     }
@@ -337,12 +339,13 @@ void UpdateEeprom()
         UCHAR length = 0;
         UCHAR* cache_buffer = &cache[state->offset];
         UCHAR* copy_buffer = &copy[state->offset];
-        while (state->offset < size && cache_buffer[length] != copy_buffer[length]) length++;
+        while ((state->offset + length) < size && cache_buffer[length] != copy_buffer[length]) length++;
 
-        state->state.params.address = state->offset;
+        state->state.params.offset = state->offset;
         state->state.params.size = length;
-        state->state.params.data = &cache[state->offset];
-        state->offset = state->offset + length;
+
+        // The next check will lock after this chunk
+        state->offset += length;
 
         //Start the Write
         pt_WriteEeprom(i);
