@@ -221,6 +221,7 @@ static void configCallback(TMC5072TypeDef* tmc5072, ConfigState state)
    registers and sends this basic initialization data to all
    TMC5072 ICs.
 ********************************************************************/
+int32_t resetState[TMC5072_REGISTER_COUNT];
 void InitMotorDrivers(void)
 {
   // Fill reverse register map
@@ -232,8 +233,6 @@ void InitMotorDrivers(void)
   for (unsigned int i = 0; i < MODULE_EEPROM_REGISTER_SIZE; i++)TMC5072ReverseModuleRegisterMap[i] = 0xff;
   for (unsigned int i = 0; i < MODULE_EEPROM_REGISTER_SIZE && TMC5072ModuleRegisterMap[i] != 0xFF; i++)TMC5072ReverseModuleRegisterMap[TMC5072ModuleRegisterMap[i]] = i;
 
-
-  static int32_t resetState[TMC5072_REGISTER_COUNT];
   UCHAR valid;
   for (unsigned int i = 0; i < N_O_MOTORS; i++)
   {

@@ -119,11 +119,14 @@ int main(void)
   InitUART(ModuleConfig.SerialBitrate);
 
   //Wait for TMC5072 to startup
-  LL_mDelay(20);
+  for (int i = 0; i < 5; ++i)
+  {
+    LL_mDelay(100);
 
 #if !defined(DEBUG)
-  LL_IWDG_ReloadCounter(IWDG);
+    LL_IWDG_ReloadCounter(IWDG);
 #endif
+  }
 
   //Init protocol
   InitMotorDrivers();
