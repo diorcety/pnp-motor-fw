@@ -343,10 +343,10 @@ void InitMotorDrivers(void)
 ********************************************************************/
 void HardStop(UINT Motor)
 {
-  VMaxModified[Motor] = TRUE;
-  AMaxModified[Motor] = TRUE;
   WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), TMC5072_VMAX(MOTOR_TO_IC_MOTOR(Motor)), 0);
-  WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), TMC5072_AMAX(MOTOR_TO_IC_MOTOR(Motor)), 65535);
+  VMaxModified[Motor] = TRUE;
+  WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), TMC5072_AMAX(MOTOR_TO_IC_MOTOR(Motor)), TMC5072_AMAX_MASK);
+  AMaxModified[Motor] = TRUE;
   WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), TMC5072_RAMPMODE(MOTOR_TO_IC_MOTOR(Motor)), (TMC5072_MODE_VELPOS << TMC5072_RAMPMODE_SHIFT) & TMC5072_RAMPMODE_MASK);
 }
 
@@ -360,8 +360,8 @@ void HardStop(UINT Motor)
 ********************************************************************/
 void SoftStop(UINT Motor)
 {
-  VMaxModified[Motor] = TRUE;
   WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), TMC5072_VMAX(MOTOR_TO_IC_MOTOR(Motor)), 0);
+  VMaxModified[Motor] = TRUE;
   WriteTMC5072Int(MOTOR_TO_IC_SPI(Motor), TMC5072_RAMPMODE(MOTOR_TO_IC_MOTOR(Motor)), (TMC5072_MODE_VELPOS << TMC5072_RAMPMODE_SHIFT) & TMC5072_RAMPMODE_MASK);
 }
 

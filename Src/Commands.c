@@ -375,8 +375,8 @@ static void RotateRight(void)
       WriteTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), AMax[ActualCommand.Motor]);
       AMaxModified[ActualCommand.Motor] = FALSE;
     }
-    VMaxModified[ActualCommand.Motor] = TRUE;
     WriteTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), VelocityToInternal[ActualCommand.Motor](abs(ActualCommand.Value.Int32)));
+    VMaxModified[ActualCommand.Motor] = TRUE;
     if (ActualCommand.Value.Int32 > 0)
     {
       WRITE_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT, 0, TMC5072_MODE_VELPOS);
@@ -407,8 +407,8 @@ static void RotateLeft(void)
       WriteTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), AMax[ActualCommand.Motor]);
       AMaxModified[ActualCommand.Motor] = FALSE;
     }
-    VMaxModified[ActualCommand.Motor] = TRUE;
     WriteTMC5072Int(MOTOR_TO_IC_SPI(ActualCommand.Motor), TMC5072_VMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), VelocityToInternal[ActualCommand.Motor](abs(ActualCommand.Value.Int32)));
+    VMaxModified[ActualCommand.Motor] = TRUE;
     if (ActualCommand.Value.Int32 > 0)
     {
       WRITE_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT, 0, TMC5072_MODE_VELNEG);
@@ -1636,8 +1636,8 @@ static void RestoreAxisParameter(void)
         {
           if (READ_PARAMETER(ActualCommand.Motor, TMC5072_RAMPMODE, TMC5072_RAMPMODE_MASK, TMC5072_RAMPMODE_SHIFT) == TMC5072_MODE_POSITION)
           {
-            VMaxModified[ActualCommand.Motor] = FALSE;
             READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_VMAX, TMC5072_VMAX_MASK, TMC5072_VMAX_SHIFT, VMax[ActualCommand.Motor]);
+            VMaxModified[ActualCommand.Motor] = FALSE;
           }
         }
         break;
@@ -1646,8 +1646,8 @@ static void RestoreAxisParameter(void)
         ActualReply.Status = LoadMotorValue(motorEeprom, ActualCommand.Motor, TMC5072_AMAX(MOTOR_TO_IC_MOTOR(ActualCommand.Motor)), TMC5072_AMAX_MASK, &AMax[ActualCommand.Motor]);
         if (ActualReply.Status == REPLY_OK)
         {
-          AMaxModified[ActualCommand.Motor] = FALSE;
           READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_AMAX, TMC5072_AMAX_MASK, TMC5072_AMAX_SHIFT, AMax[ActualCommand.Motor]);
+          AMaxModified[ActualCommand.Motor] = FALSE;
         }
         break;
 
