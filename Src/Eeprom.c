@@ -85,15 +85,19 @@ static EepromState eeprom_states[EEPROM_DEVICE_N];
 #define GET_EEPROM_SIZE(device) (device != EEPROM_LOCAL_DEVICE?sizeof(EepromMotorContent):sizeof(EepromModuleContent))
 #define IS_EEPROM_BUSY(device) __HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)
 
+typedef int EEPROM_Status;
+#define EEPROM_ERROR 1
+#define EEPROM_OK 0
+
 /*
  * Local Eeprom functions
  */
 
-static HAL_StatusTypeDef EEPROM_ReadBytes(USHORT Address, UCHAR* Data, UCHAR Size)
+static EEPROM_Status EEPROM_ReadBytes(USHORT Address, UCHAR* Data, UCHAR Size)
 {
   if ((Address + Size) >= DATA_EEPROM_SIZE)
   {
-    return HAL_ERROR;
+    return EEPROM_ERROR;
   }
 
   /* Disable all IRQs */
@@ -102,7 +106,7 @@ static HAL_StatusTypeDef EEPROM_ReadBytes(USHORT Address, UCHAR* Data, UCHAR Siz
   USHORT i = 0;
   // 4 bytes
   {
-    __IO uint32_t* currentAddress = (__IO uint32_t*)(DATA_EEPROM_BASE + Address + i);
+    volatile uint32_t* currentAddress = (volatile uint32_t*)(DATA_EEPROM_BASE + Address + i);
     uint32_t* currentBuffer = (uint32_t*)&(Data[i]);
     while ((i + 4) <= Size)
     {
@@ -112,7 +116,7 @@ static HAL_StatusTypeDef EEPROM_ReadBytes(USHORT Address, UCHAR* Data, UCHAR Siz
   }
   // 1 byte
   {
-    __IO uint8_t* currentAddress = (__IO uint8_t*)(DATA_EEPROM_BASE + Address + i);
+    volatile uint8_t* currentAddress = (volatile uint8_t*)(DATA_EEPROM_BASE + Address + i);
     uint8_t* currentBuffer = (uint8_t*)&(Data[i]);
     while ((i + 1) <= Size)
     {
@@ -124,18 +128,18 @@ static HAL_StatusTypeDef EEPROM_ReadBytes(USHORT Address, UCHAR* Data, UCHAR Siz
   /* Enable IRQs */
   __enable_irq();
 
-  return HAL_OK;
+  return EEPROM_OK;
 }
 
 static void pt_EEPROM_WriteBytes(ProtoThread* pt, EepromWriteState* state)
 {
-  HAL_StatusTypeDef ret = HAL_OK;
+  EEPROM_Status ret = EEPROM_OK;
 
   pt_begin(pt);
 
   if (HAL_OK != HAL_FLASH_Unlock())
   {
-    pt_exit(pt, HAL_ERROR);
+    pt_exit(pt, EEPROM_ERROR);
   }
 
   while (state->internal.offset < state->params.size)
@@ -150,19 +154,19 @@ static void pt_EEPROM_WriteBytes(ProtoThread* pt, EepromWriteState* state)
     if (state->params.size >= 4 && (((uint32_t)eeprom_chunk) & (4 - 1)) == 0)
     {
       state->internal.count = 4;
-      *((__IO uint32_t*)eeprom_chunk) = *((uint32_t*)data_chunk);
+      *((volatile uint32_t*)eeprom_chunk) = *((uint32_t*)data_chunk);
     }
     // 2 bytes
     else if (state->params.size >= 2 && (((uint32_t)eeprom_chunk) & (2 - 1)) == 0)
     {
       state->internal.count = 2;
-      *((__IO uint16_t*)eeprom_chunk) = *((uint16_t*)data_chunk);
+      *((volatile uint16_t*)eeprom_chunk) = *((uint16_t*)data_chunk);
     }
     // 1 byte
     else
     {
       state->internal.count = 1;
-      *((__IO uint8_t*)eeprom_chunk) = *((uint8_t*)data_chunk);
+      *((volatile uint8_t*)eeprom_chunk) = *((uint8_t*)data_chunk);
     }
 
     /* Enable IRQs */
@@ -193,10 +197,10 @@ static void pt_EEPROM_WriteBytes(ProtoThread* pt, EepromWriteState* state)
         FLASH_FLAG_RDERR |
         FLASH_FLAG_FWWERR |
         FLASH_FLAG_NOTZEROERR);
-      ret = HAL_ERROR;
+      ret = EEPROM_ERROR;
     }
 
-    if (ret != HAL_OK)
+    if (ret != EEPROM_OK)
     {
       break;
     }
@@ -244,9 +248,8 @@ static UCHAR* GetEeprom(UCHAR device)
   USHORT size = GET_EEPROM_SIZE(device);
   if (!state->valid)
   {
-    HAL_StatusTypeDef ret;
-    ret = EEPROM_ReadBytes(sizeof(EepromMotorContent) * device, copy, size);
-    if (ret == HAL_OK)
+    EEPROM_Status ret = EEPROM_ReadBytes(sizeof(EepromMotorContent) * device, copy, size);
+    if (ret == EEPROM_OK)
       memcpy(data, copy, size);
     state->valid = TRUE;
   }
@@ -300,7 +303,7 @@ void UpdateEeprom()
     if (!state->valid) continue;
     if (pt_status(&state->pt) == PT_STATUS_FINISHED)
     {
-      if (pt_exitcode(&state->pt) == HAL_OK)  //Update the copy buffer if the EEPROM is correctly updated
+      if (pt_exitcode(&state->pt) == EEPROM_OK)  //Update the copy buffer if the EEPROM is correctly updated
       {
         memcpy(&copy[state->state.params.offset], &cache[state->state.params.offset], state->state.params.size);
       }

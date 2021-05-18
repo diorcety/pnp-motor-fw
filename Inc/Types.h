@@ -28,6 +28,8 @@
 #ifndef __BITS_H
 #define __BITS_H
 
+#include <stdint.h>
+
 typedef unsigned char UCHAR;                   //!< 8 bits unsigned
 typedef unsigned short USHORT;                 //!< 16 bits unsigned
 typedef unsigned int UINT;                     //!< 32 bits unsigned

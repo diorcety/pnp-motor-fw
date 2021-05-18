@@ -35,7 +35,7 @@
 extern volatile UINT UARTTransmitDelayTimer;
 extern volatile UCHAR UARTTimeoutFlag;
 extern volatile UINT UARTTimeoutTimer;
-__IO uint32_t uwTick;
+volatile uint32_t uwTick;
 
 /***************************************************//**
   \fn SysTimerHandler(void)
