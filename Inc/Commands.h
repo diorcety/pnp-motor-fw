@@ -109,7 +109,7 @@
 #define TMCL_AP_SmartEnergyStallVelocity         181
 #define TMCL_AP_SmartEnergyThresholdSpeed        182
 #define TMCL_AP_RandomTOffMode                   184
-#define TMCL_AP_ChopperSynchronization           185
+//#define TMCL_AP_ChopperSynchronization           185
 //#define TMCL_AP_PWMThresholdSpeed                186
 #define TMCL_AP_PWMGradient                      187
 #define TMCL_AP_PWMAmplitude                     188

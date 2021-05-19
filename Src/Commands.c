@@ -630,10 +630,7 @@ static void SetAxisParameter(void)
         ActualReply.Status = REPLY_INVALID_VALUE;
         break;
       }
-      if (MotorConfig[ActualCommand.Motor].UnitMode == UNIT_MODE_INTERNAL)
-      {
-        ActualCommand.Value.Int32 = ConvertVelocityInternalToUser(ActualCommand.Value.Int32);
-      }
+      if (MotorConfig[ActualCommand.Motor].UnitMode == UNIT_MODE_INTERNAL) ActualCommand.Value.Int32 = ConvertVelocityInternalToUser(ActualCommand.Value.Int32);
       READ_WRITE_PARAMETER(ActualCommand.Motor, TMC5072_VHIGH, TMC5072_VHIGH_MASK, TMC5072_VHIGH_SHIFT, ActualCommand.Value.Int32);
       break;
 
@@ -1008,10 +1005,7 @@ static void GetAxisParameter(void)
 
     case TMCL_AP_SpeedThresholdForCoolStep:
       ActualReply.Value.Int32 = READ_PARAMETER(ActualCommand.Motor, TMC5072_VHIGH, TMC5072_VHIGH_MASK, TMC5072_VHIGH_SHIFT);
-      if (MotorConfig[ActualCommand.Motor].UnitMode == UNIT_MODE_INTERNAL)
-      {
-        ActualReply.Value.Int32 = ConvertVelocityUserToInternal(ActualReply.Value.Int32);
-      }
+      if (MotorConfig[ActualCommand.Motor].UnitMode == UNIT_MODE_INTERNAL) ActualReply.Value.Int32 = ConvertVelocityUserToInternal(ActualReply.Value.Int32);
       break;
 
     case TMCL_AP_MinimumSpeedForDcStep:
@@ -1165,10 +1159,7 @@ static void GetAxisParameter(void)
 
     case TMCL_AP_SmartEnergyThresholdSpeed:
       ActualReply.Value.Int32 = READ_PARAMETER(ActualCommand.Motor, TMC5072_VCOOLTHRS, TMC5072_VCOOLTHRS_MASK, TMC5072_VCOOLTHRS_SHIFT);
-      if (MotorConfig[ActualCommand.Motor].UnitMode == UNIT_MODE_INTERNAL)
-      {
-        ActualReply.Value.Int32 = ConvertVelocityUserToInternal(ActualReply.Value.Int32);
-      }
+      if (MotorConfig[ActualCommand.Motor].UnitMode == UNIT_MODE_INTERNAL) ActualReply.Value.Int32 = ConvertVelocityUserToInternal(ActualReply.Value.Int32);
       break;
 
     case TMCL_AP_RandomTOffMode:
