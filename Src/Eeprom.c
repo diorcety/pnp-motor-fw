@@ -36,35 +36,30 @@
 #define EEPROM_DEVICE_N (N_O_MOTORS+1)
 #define EEPROM_TIMEOUT 1000
 
-typedef struct
-{
-  USHORT offset;
-  USHORT size;
-} EepromWriteParams;
-
-typedef struct 
-{
-  UCHAR* eeprom;
-  UCHAR* data;
-  USHORT offset;
-  USHORT count;
-} EepromWriteInternal;
-
-typedef struct
-{
-  EepromWriteParams params;
-  EepromWriteInternal internal;
-  USHORT offset;
-} EepromWriteState;
-
 typedef struct pt ProtoThread;
+
+typedef     struct
+{
+  struct
+  {
+    USHORT offset;
+    USHORT size;
+  } params;
+  struct
+  {
+    UCHAR* eeprom;
+    UCHAR* data;
+    USHORT offset;
+    USHORT count;
+  } internal;
+} EepromWriteState;
 
 typedef struct
 {
   UINT tick;
 
   ProtoThread pt;
-  EepromWriteState state;
+  EepromWriteState wstate;
 
   USHORT offset;
   UCHAR valid;
@@ -83,7 +78,6 @@ static EepromState eeprom_states[EEPROM_DEVICE_N];
 #define GET_EEPROM_CACHE(device) (device != EEPROM_LOCAL_DEVICE?(UCHAR *)&eeprom_motor_cache[device]:(UCHAR *)&eeprom_module_cache)
 #define GET_EEPROM_COPY(device) (device != EEPROM_LOCAL_DEVICE?(UCHAR *)&eeprom_motor_copy[device]:(UCHAR *)&eeprom_module_copy)
 #define GET_EEPROM_SIZE(device) (device != EEPROM_LOCAL_DEVICE?sizeof(EepromMotorContent):sizeof(EepromModuleContent))
-#define IS_EEPROM_BUSY(device) __HAL_FLASH_GET_FLAG(FLASH_FLAG_BSY)
 
 typedef int EEPROM_Status;
 #define EEPROM_ERROR 1
@@ -92,6 +86,19 @@ typedef int EEPROM_Status;
 /*
  * Local Eeprom functions
  */
+
+static UCHAR EEPROM_IsBusy(UCHAR device)
+{
+  for (UCHAR i = 0; i < EEPROM_DEVICE_N; ++i)
+  {
+    EepromState* state = &eeprom_states[i];
+    if (pt_status(&state->pt) != PT_STATUS_IDLE)
+    {
+      return 1;
+    }
+  }
+  return 0;
+}
 
 static EEPROM_Status EEPROM_ReadBytes(USHORT Address, UCHAR* Data, UCHAR Size)
 {
@@ -261,11 +268,11 @@ static void pt_WriteEeprom(UCHAR device)
   EepromState* state = &eeprom_states[device];
   if (pt_status(&state->pt) == PT_STATUS_IDLE)
   {
-    state->state.internal.eeprom = (UCHAR *)(DATA_EEPROM_BASE + (sizeof(EepromMotorContent) * device) + state->state.params.offset);
-    state->state.internal.data = GET_EEPROM_CACHE(device) + state->state.params.offset;
-    state->state.internal.offset = 0;
+    state->wstate.internal.eeprom = (UCHAR*)(DATA_EEPROM_BASE + (sizeof(EepromMotorContent) * device) + state->wstate.params.offset);
+    state->wstate.internal.data = GET_EEPROM_CACHE(device) + state->wstate.params.offset;
+    state->wstate.internal.offset = 0;
   }
-  pt_EEPROM_WriteBytes(&state->pt, &state->state);
+  pt_EEPROM_WriteBytes(&state->pt, &state->wstate);
 }
 
 /*********************************************//**
@@ -305,7 +312,7 @@ void UpdateEeprom()
     {
       if (pt_exitcode(&state->pt) == EEPROM_OK)  //Update the copy buffer if the EEPROM is correctly updated
       {
-        memcpy(&copy[state->state.params.offset], &cache[state->state.params.offset], state->state.params.size);
+        memcpy(&copy[state->wstate.params.offset], &cache[state->wstate.params.offset], state->wstate.params.size);
       }
       pt_reset(&state->pt);
     }
@@ -313,7 +320,7 @@ void UpdateEeprom()
     {
       pt_WriteEeprom(i);
     }
-    else if (IS_EEPROM_BUSY(i))
+    else if (EEPROM_IsBusy(i))
     {
       // Don't start a new eeprom write if one is currently running (shared eeprom)
       continue;
@@ -344,8 +351,8 @@ void UpdateEeprom()
         UCHAR* copy_buffer = &copy[state->offset];
         while ((state->offset + length) < size && cache_buffer[length] != copy_buffer[length]) length++;
 
-        state->state.params.offset = state->offset;
-        state->state.params.size = length;
+        state->wstate.params.offset = state->offset;
+        state->wstate.params.size = length;
 
         // The next check will lock after this chunk
         state->offset += length;
