@@ -103,7 +103,7 @@ void SystemControl(void)
   }
 
   //switch stop on stall off or on depending on the speed
-  if (MotorConfig[ActualAxis].StallVMin > 0 && abs(ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualAxis), TMC5072_VACTUAL(MOTOR_TO_IC_MOTOR(ActualAxis)))) > MotorConfig[ActualAxis].StallVMin)
+  if (MotorConfig[ActualAxis].StallVMin > 0 && ((UINT)abs(ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualAxis), TMC5072_VACTUAL(MOTOR_TO_IC_MOTOR(ActualAxis))))) > MotorConfig[ActualAxis].StallVMin)
   {
     if (!StopOnStallState[ActualAxis])
     {
@@ -126,7 +126,7 @@ void SystemControl(void)
   //Stop on deviation
   if (MotorConfig[ActualAxis].MaxDeviation > 0 && !(RampStat & TMC5072_VZERO_MASK))
   {
-    if (abs(ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualAxis), TMC5072_XENC(MOTOR_TO_IC_MOTOR(ActualAxis))) - ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualAxis), TMC5072_XACTUAL(MOTOR_TO_IC_MOTOR(ActualAxis)))) > MotorConfig[ActualAxis].MaxDeviation)
+    if (((UINT)abs(ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualAxis), TMC5072_XENC(MOTOR_TO_IC_MOTOR(ActualAxis))) - ReadTMC5072Int(MOTOR_TO_IC_SPI(ActualAxis), TMC5072_XACTUAL(MOTOR_TO_IC_MOTOR(ActualAxis))))) > MotorConfig[ActualAxis].MaxDeviation)
     {
       HardStop(ActualAxis);
       MotorFlags[ActualAxis] |= MOTOR_FLAG_DEVIATION;

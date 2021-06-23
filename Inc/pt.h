@@ -124,6 +124,7 @@ struct pt
   do {                                                                         \
     (pt)->label = __LINE__;                                                    \
     (pt)->status = (stat);                                                     \
+    /* FALLTHRU */                                                             \
   case __LINE__:;                                                              \
   } while (0)
 #define pt_end(pt)                                                             \

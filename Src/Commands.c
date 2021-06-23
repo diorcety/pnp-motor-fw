@@ -46,7 +46,7 @@
 #define VALUE_TO_REGISTER(VALUE, MASK, SHIFT) (((VALUE) << (SHIFT)) & (MASK))
 
 #define CHECK_PARAMETER(VALUE, MASK, SHIFT)                                               \
-   if((VALUE) != ((VALUE) & ((MASK) >> (SHIFT))))                                         \
+   if(((VALUE) & 0xFFFFFFFF) != ((VALUE) & ((MASK) >> (SHIFT))))                          \
    {                                                                                      \
      ActualReply.Status=REPLY_INVALID_VALUE;                                              \
      return;                                                                              \

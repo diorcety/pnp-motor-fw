@@ -248,7 +248,7 @@ void tmc_ramp_linear_compute_position(TMC_LinearRamp *linearRamp)
 	case TMC_RAMP_LINEAR_STATE_BRAKING:
 		if(linearRamp->targetPosition == linearRamp->rampPosition)
 		{
-			if(abs(linearRamp->rampVelocity) <= linearRamp->stopVelocity)
+			if(((uint32_t)abs(linearRamp->rampVelocity)) <= linearRamp->stopVelocity)
 			{	// Position reached, velocity within cutoff threshold (or zero)
 				linearRamp->rampVelocity = 0;
 				linearRamp->targetVelocity = 0;
@@ -284,7 +284,7 @@ void tmc_ramp_linear_compute_position(TMC_LinearRamp *linearRamp)
 			}
 			else
 			{	// Standing still (not at the target position)
-				if(abs(linearRamp->targetPosition - linearRamp->rampPosition) <= linearRamp->homingDistance)
+				if(((uint32_t)abs(linearRamp->targetPosition - linearRamp->rampPosition)) <= linearRamp->homingDistance)
 				{	// Within homing distance - drive with stop velocity
 					linearRamp->targetVelocity = (linearRamp->targetPosition > linearRamp->rampPosition)? linearRamp->stopVelocity : -linearRamp->stopVelocity;
 				}

@@ -38,7 +38,7 @@
 
 typedef struct pt ProtoThread;
 
-typedef     struct
+typedef struct
 {
   struct
   {
@@ -354,7 +354,7 @@ void UpdateEeprom()
         state->wstate.params.offset = state->offset;
         state->wstate.params.size = length;
 
-        // The next check will lock after this chunk
+        // The next check will look after this chunk
         state->offset += length;
 
         //Start the Write
