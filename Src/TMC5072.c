@@ -31,6 +31,7 @@
 #include <string.h>
 #include <math.h>
 #include "Types.h"
+#include "main.h"
 #include "PnpSpindle.h"
 #include "Globals.h"
 #include "SPI.h"
@@ -329,7 +330,13 @@ void InitMotorDrivers(void)
   {
     {
       while (Configuration[MOTOR_TO_IC_SPI(i)].state != CONFIG_READY)
+      {
         tmc5072_periodicJob(&TMC5072[MOTOR_TO_IC_SPI(i)], 0);
+
+#if !defined(DEBUG)
+  LL_IWDG_ReloadCounter(IWDG);
+#endif
+      }
     }
   }
 }
