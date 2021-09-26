@@ -228,11 +228,15 @@ void InitMotorDrivers(void)
   // Fill reverse register map
   for (unsigned int j = 0; j < MOTOR_BY_IC; ++j)
   {
-    for (unsigned int i = 0; i < MOTOR_EEPROM_REGISTER_SIZE; i++)TMC5072ReverseMotorRegisterMap[j][i] = 0xff;
-    for (unsigned int i = 0; i < MOTOR_EEPROM_REGISTER_SIZE && TMC5072MotorRegisterMap[j][i] != 0xFF; i++)TMC5072ReverseMotorRegisterMap[j][TMC5072MotorRegisterMap[j][i]] = i;
+    for (unsigned int i = 0; i < TMC5072_REGISTER_COUNT; i++)
+      TMC5072ReverseMotorRegisterMap[j][i] = TMC5072_INVALID_REGISTER;
+    for (unsigned int i = 0; i < MOTOR_EEPROM_REGISTER_SIZE && TMC5072MotorRegisterMap[j][i] != TMC5072_INVALID_REGISTER; i++)
+      TMC5072ReverseMotorRegisterMap[j][TMC5072MotorRegisterMap[j][i]] = i;
   }
-  for (unsigned int i = 0; i < MODULE_EEPROM_REGISTER_SIZE; i++)TMC5072ReverseModuleRegisterMap[i] = 0xff;
-  for (unsigned int i = 0; i < MODULE_EEPROM_REGISTER_SIZE && TMC5072ModuleRegisterMap[i] != 0xFF; i++)TMC5072ReverseModuleRegisterMap[TMC5072ModuleRegisterMap[i]] = i;
+  for (unsigned int i = 0; i < TMC5072_REGISTER_COUNT; i++)
+    TMC5072ReverseModuleRegisterMap[i] = TMC5072_INVALID_REGISTER;
+  for (unsigned int i = 0; i < MODULE_EEPROM_REGISTER_SIZE && TMC5072ModuleRegisterMap[i] != TMC5072_INVALID_REGISTER; i++)
+    TMC5072ReverseModuleRegisterMap[TMC5072ModuleRegisterMap[i]] = i;
 
   UCHAR valid;
   for (unsigned int i = 0; i < N_O_MOTORS; i++)
@@ -334,7 +338,7 @@ void InitMotorDrivers(void)
         tmc5072_periodicJob(&TMC5072[MOTOR_TO_IC_SPI(i)], 0);
 
 #if !defined(DEBUG)
-  LL_IWDG_ReloadCounter(IWDG);
+        LL_IWDG_ReloadCounter(IWDG);
 #endif
       }
     }
